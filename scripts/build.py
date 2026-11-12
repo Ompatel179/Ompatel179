@@ -55,8 +55,6 @@ ACCENTS = {
     "rose":       {"light": "#B3325A", "dark": "#FF7AA2"},
     "sage":       {"light": "#3F6F2C", "dark": "#9ED07F"},
 }
-STATUS_ACCENT = {"shipped": "terracotta", "published": "teal", "live": "sage",
-                 "in progress": "mustard"}
 SANS = "-apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,Arial,sans-serif"
 MONO = "ui-monospace,SFMono-Regular,Menlo,Consolas,monospace"
 REDUCED_MOTION = "@media (prefers-reduced-motion: reduce){*{animation:none!important}}"
@@ -331,16 +329,76 @@ def header_svg(theme: str) -> str:
 
 
 # --------------------------------------------------------------------------
-# Status pills
+# Project cards: accent stripe, breathing colour blob, pulsing status dot
 # --------------------------------------------------------------------------
-def status_svg(status: str, theme: str) -> str:
-    a = accent(STATUS_ACCENT.get(status, "sky"), theme)
-    W, H = int(text_width(status, 12, bold=True) + 30), 22
-    pulse = ' class="pulse"' if status in ("live", "in progress") else ""
-    style = ".pulse{animation:pulse 1.8s ease-in-out infinite}@keyframes pulse{50%{opacity:.25}}"
-    return svg_open(W, H, status, f"Status: {status}", style) + f'''<rect width="{W}" height="{H}" rx="11" fill="{a}" fill-opacity="0.15"/>
-<circle{pulse} cx="12" cy="11" r="4" fill="{a}"/>
-<text x="21" y="15.5" font-family="{SANS}" font-size="12" font-weight="700" fill="{a}">{x(status)}</text>
+STATUS_DOT_PULSE = {"live", "in progress"}
+
+
+def card_svg(p: dict, theme: str) -> str:
+    t = THEMES[theme]
+    a = accent(p["accent"], theme)
+    W, H, pad = 400, 230, 24
+    inner = W - 2 * pad
+
+    status = p["status"]
+    st_w = text_width(status, 12, bold=True) + 30
+    corner = p.get("updated", "")
+    if p.get("built_with"):
+        corner = "with " + ", ".join(f"@{h}" for h in p["built_with"])
+
+    title_y = 76
+    lines = wrap(p["pitch"], 13.5, inner, 3)
+    pitch = "".join(
+        f'<tspan x="{pad}" dy="{0 if i == 0 else 19.5}">{x(l)}</tspan>' for i, l in enumerate(lines)
+    )
+    pitch_y = 102
+    stats_y = pitch_y + 19.5 * (len(lines) - 1) + 25
+    stats = p["stats"]
+    while text_width(stats, 12, mono=True) > inner and " · " in stats:
+        stats = stats.rsplit(" · ", 1)[0]
+
+    chips, cx, chip_y = [], pad, H - 48
+    for item in p["stack"]:
+        w = text_width(item, 12) + 18
+        if cx + w > W - pad:
+            break
+        chips.append(
+            f'<rect x="{cx:.1f}" y="{chip_y}" width="{w:.1f}" height="24" rx="12" fill="{t["chip"]}" stroke="{t["border"]}"/>'
+            f'<text x="{cx + w/2:.1f}" y="{chip_y+16}" text-anchor="middle" font-size="12" fill="{t["ink"]}">{x(item)}</text>'
+        )
+        cx += w + 6
+
+    pulse = ' class="pulse"' if status in STATUS_DOT_PULSE else ""
+    upd = (f'<text x="{W-pad}" y="40" text-anchor="end" font-size="11.5" fill="{t["muted"]}">{x(corner)}</text>'
+           if corner else "")
+
+    return f'''<svg xmlns="http://www.w3.org/2000/svg" width="{W}" height="{H}" viewBox="0 0 {W} {H}" role="img" aria-labelledby="t d">
+<title id="t">{x(p["title"])} ({x(status)})</title>
+<desc id="d">{x(p["pitch"])} {x(p["stats"])}. Built with {x(", ".join(p["stack"]))}.</desc>
+<style>
+.blob{{animation:breathe 7s ease-in-out infinite;transform-box:fill-box;transform-origin:center}}
+@keyframes breathe{{0%,100%{{transform:scale(1)}}50%{{transform:scale(1.12)}}}}
+.pulse{{animation:pulse 1.8s ease-in-out infinite}}
+@keyframes pulse{{0%,100%{{opacity:1}}50%{{opacity:.25}}}}
+{REDUCED_MOTION}
+</style>
+<clipPath id="c"><rect x="1" y="1" width="{W-2}" height="{H-2}" rx="16"/></clipPath>
+<g clip-path="url(#c)">
+  <rect x="1" y="1" width="{W-2}" height="{H-2}" fill="{t["bg"]}"/>
+  <circle class="blob" cx="{W-18}" cy="{H-6}" r="62" fill="{a}" opacity="0.13"/>
+  <rect x="1" y="1" width="6" height="{H-2}" fill="{a}"/>
+</g>
+<rect x="1" y="1" width="{W-2}" height="{H-2}" rx="16" fill="none" stroke="{t["border"]}" stroke-width="1.5"/>
+<g font-family="{SANS}">
+  <rect x="{pad}" y="24" width="{st_w:.1f}" height="22" rx="11" fill="{a}" fill-opacity="0.14"/>
+  <circle{pulse} cx="{pad+12}" cy="35" r="4" fill="{a}"/>
+  <text x="{pad+21}" y="39.5" font-size="12" font-weight="700" fill="{a}">{x(status)}</text>
+  {upd}
+  <text x="{pad}" y="{title_y}" font-size="22" font-weight="800" fill="{t["ink"]}" letter-spacing="-0.3">{x(p["title"])}</text>
+  <text x="{pad}" y="{pitch_y}" font-size="13.5" fill="{t["muted"]}">{pitch}</text>
+  <text x="{pad}" y="{stats_y:.1f}" font-family="{MONO}" font-size="12" font-weight="700" fill="{a}">{x(stats)}</text>
+  {"".join(chips)}
+</g>
 </svg>
 '''
 
@@ -437,28 +495,30 @@ def picture(name: str, alt: str, extra: str = "") -> str:
             f'<img src="assets/{name}-light.svg" alt="{x(alt)}"{extra}></picture>')
 
 
-def project_cell(p: dict) -> str:
-    title = f'<b>{x(p["title"])}{" ↗" if p.get("url") else ""}</b>'
-    if p.get("url"):
-        title = f'<a href="{p["url"]}">{title}</a>'
-    extra = ""
-    if p.get("repo_url") and p.get("homepage"):
-        extra = f' · <a href="{p["homepage"]}">live demo</a>'
-    if p.get("built_with"):
-        who = ", ".join(f'<a href="https://github.com/{h}">@{h}</a>' for h in p["built_with"])
-        extra += f'<br><sub>built with {who}</sub>'
-    status = picture(f'status-{slug(p["status"])}', p["status"], ' height="20"')
-    tags = " ".join(f"<code>{x(s)}</code>" for s in p["stack"])
-    return (f'<td width="50%" valign="top">\n{title} &nbsp;{status}{extra}\n'
-            f'<p>{x(p["pitch"])}</p>\n<p><b>{x(p["highlight"])}</b> · {x(p["detail"])}</p>\n<p>{tags}</p>\n</td>')
+def month(iso: str) -> str:
+    return datetime.fromisoformat(iso.replace("Z", "+00:00")).strftime("%b %Y")
 
 
 def projects_section(featured: list[dict]) -> str:
+    cards, links = [], []
+    for p in featured:
+        alt = f'{p["title"]} ({p["status"]}): {p["pitch"]} Stack: {", ".join(p["stack"])}.'
+        img = picture(f'card-{slug(p["title"])}', alt)
+        cards.append(f'<a href="{p["url"]}">{img}</a>' if p.get("url") else img)
+        bits = []
+        if p.get("repo_url"):
+            bits.append(f'<a href="{p["repo_url"]}">code</a>')
+        if p.get("homepage"):
+            bits.append(f'<a href="{p["homepage"]}">live demo</a>')
+        if p.get("built_with"):
+            bits.append("built with " + ", ".join(
+                f'<a href="https://github.com/{h}">@{h}</a>' for h in p["built_with"]))
+        if bits:
+            links.append(f'<b>{x(p["title"])}</b> {" · ".join(bits)}')
     rows = []
-    for i in range(0, len(featured), 2):
-        cells = "\n".join(project_cell(p) for p in featured[i:i + 2])
-        rows.append(f"<tr>\n{cells}\n</tr>")
-    return "<table>\n" + "\n".join(rows) + "\n</table>"
+    for i in range(0, len(cards), 2):
+        rows.append('<p align="center">\n  ' + "\n  ".join(cards[i:i + 2]) + "\n</p>")
+    return "\n".join(rows) + f'\n<p align="center"><sub>{" &nbsp;|&nbsp; ".join(links)}</sub></p>'
 
 
 def more_section(more: list[dict], repos: dict) -> str:
@@ -546,13 +606,14 @@ def main() -> None:
             p.setdefault("url", r["html_url"])
             if r.get("homepage"):
                 p["homepage"] = r["homepage"]
+            p["updated"] = "updated " + month(r["pushed_at"])
         featured.append(p)
 
     print("Rendering SVGs…")
     for theme in THEMES:
         write(ASSETS / f"header-{theme}.svg", header_svg(theme))
-        for status in {p["status"] for p in featured}:
-            write(ASSETS / f"status-{slug(status)}-{theme}.svg", status_svg(status, theme))
+        for p in featured:
+            write(ASSETS / f"card-{slug(p['title'])}-{theme}.svg", card_svg(p, theme))
         for group in CONFIG["stack"]:
             write(ASSETS / f"panel-{slug(group['label'])}-{theme}.svg", stack_panel(group, theme))
         write(ASSETS / f"panel-learning-{theme}.svg", learning_panel(theme))

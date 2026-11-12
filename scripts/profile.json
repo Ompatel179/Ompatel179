@@ -2,49 +2,79 @@
   "username": "Ompatel179",
   "name": "Om Patel",
   "handle": "~/om",
-  "roles": ["ML engineer", "backend", "full stack"],
-  "meta": ["Rutgers University", "New Brunswick, NJ", "MS CS · May 2027"],
-
+  "roles": [
+    "ML engineer",
+    "backend",
+    "full stack"
+  ],
+  "meta": [
+    "Rutgers University",
+    "New Brunswick, NJ",
+    "MS CS · May 2027"
+  ],
   "featured": [
     {
       "repo": "Eventpass",
       "title": "EventPass",
-      "pitch": "QR-code check-in for student clubs. Students get a ticket, organizers scan it at the door from a phone, and every ticket checks in exactly once, even when several organizers scan at the same moment.",
-      "highlight": "0 duplicates",
-      "detail": "2,862 concurrent scans, ~950 req/s on one worker after I found and fixed a deadlock, 97% test coverage",
-      "stack": ["FastAPI", "PostgreSQL", "Redis", "Docker", "Locust"],
-      "status": "shipped"
+      "pitch": "QR-code check-in for student clubs. Every ticket scans exactly once, even when several organizers scan at the same moment.",
+      "stack": [
+        "FastAPI",
+        "PostgreSQL",
+        "Redis",
+        "Docker",
+        "Actions"
+      ],
+      "status": "shipped",
+      "stats": "~950 req/s · 0 duplicate check-ins · 97% coverage",
+      "accent": "terracotta"
     },
     {
       "repo": "Harnessing_Generative_Adversarial_Models_to_Enhance_Satellite_Imagery_Quality",
       "title": "Satellite SRGAN",
-      "pitch": "A super-resolution GAN that sharpens satellite images 4×, trained in two stages: MSE pre-training, then adversarial fine-tuning with a VGG19 perceptual loss.",
-      "highlight": "Published at IEEE ICETA 2025",
-      "detail": "34.55 dB PSNR and 0.08 LPIPS in the paper",
-      "stack": ["PyTorch", "GANs", "VGG19", "OpenCV"],
-      "status": "published"
+      "pitch": "A GAN that sharpens satellite images 4×. The research behind it was published at IEEE ICETA 2025.",
+      "stack": [
+        "PyTorch",
+        "GANs",
+        "VGG19",
+        "OpenCV"
+      ],
+      "status": "published",
+      "stats": "paper: 34.55 dB PSNR · 0.08 LPIPS",
+      "accent": "teal"
     },
     {
       "title": "Composur",
       "url": "https://composur.tech",
       "homepage": "https://composur.tech",
-      "built_with": ["RishiiShah"],
-      "pitch": "Practice technical interviews out loud. An LLM interviewer listens, asks adaptive follow-ups and scores the answers you actually gave.",
-      "highlight": "28 interview domains",
-      "detail": "speech recognition → streaming LLM → text-to-speech",
-      "stack": ["Next.js", "TypeScript", "PostgreSQL", "Groq", "AWS S3"],
-      "status": "live"
+      "built_with": [
+        "RishiiShah"
+      ],
+      "pitch": "Voice mock interviews where an LLM interviewer asks adaptive follow-ups across 28 interview domains.",
+      "stack": [
+        "Next.js",
+        "TypeScript",
+        "PostgreSQL",
+        "Llama 3.3",
+        "AWS S3"
+      ],
+      "status": "live",
+      "stats": "speech → streaming LLM → text-to-speech",
+      "accent": "plum"
     },
     {
       "title": "RAG project",
-      "pitch": "A retrieval-augmented generation system: LLM answers grounded in real documents, with retrieval quality I can measure instead of guess.",
-      "highlight": "Building now",
-      "detail": "this cell turns into a real link when the repo goes public",
-      "stack": ["Python", "LLMs", "Embeddings", "Vector search"],
-      "status": "in progress"
+      "pitch": "A retrieval-augmented generation system: LLM answers grounded in real documents, with retrieval quality I can measure.",
+      "stack": [
+        "Python",
+        "LLMs",
+        "Embeddings",
+        "Vector search"
+      ],
+      "status": "in progress",
+      "stats": "coming soon · building in public",
+      "accent": "mustard"
     }
   ],
-
   "more": [
     {
       "repo": "Jobnova",
@@ -59,27 +89,141 @@
       "stack": "TensorFlow · Keras · OpenCV · Streamlit"
     }
   ],
-
   "stack": [
-    {"label": "ML & AI", "accent": "teal", "items": [
-      ["PyTorch", "pytorch"], ["TensorFlow", "tensorflow"], ["Keras", "keras"],
-      ["OpenCV", "opencv"], ["LLM APIs", "openai"]]},
-    {"label": "Backend & data", "accent": "terracotta", "items": [
-      ["Python", "python"], ["FastAPI", "fastapi"], ["Flask", "flask"],
-      ["PostgreSQL", "postgresql"], ["Redis", "redis"], ["SQLAlchemy", null, "SA"]]},
-    {"label": "Full stack", "accent": "plum", "items": [
-      ["TypeScript", "typescript"], ["Next.js", "nextdotjs"], ["Prisma", "prisma"],
-      ["JavaScript", "javascript"], ["HTML/CSS", "html5"]]},
-    {"label": "Ship & test", "accent": "sky", "items": [
-      ["Docker", "docker"], ["GitHub Actions", "githubactions"], ["Vercel", "vercel"],
-      ["AWS S3", "amazons3"], ["Locust", null]]}
+    {
+      "label": "ML & AI",
+      "accent": "teal",
+      "items": [
+        [
+          "PyTorch",
+          "pytorch"
+        ],
+        [
+          "TensorFlow",
+          "tensorflow"
+        ],
+        [
+          "Keras",
+          "keras"
+        ],
+        [
+          "OpenCV",
+          "opencv"
+        ],
+        [
+          "LLM APIs",
+          "openai"
+        ]
+      ]
+    },
+    {
+      "label": "Backend & data",
+      "accent": "terracotta",
+      "items": [
+        [
+          "Python",
+          "python"
+        ],
+        [
+          "FastAPI",
+          "fastapi"
+        ],
+        [
+          "Flask",
+          "flask"
+        ],
+        [
+          "PostgreSQL",
+          "postgresql"
+        ],
+        [
+          "Redis",
+          "redis"
+        ],
+        [
+          "SQLAlchemy",
+          null,
+          "SA"
+        ]
+      ]
+    },
+    {
+      "label": "Full stack",
+      "accent": "plum",
+      "items": [
+        [
+          "TypeScript",
+          "typescript"
+        ],
+        [
+          "Next.js",
+          "nextdotjs"
+        ],
+        [
+          "Prisma",
+          "prisma"
+        ],
+        [
+          "JavaScript",
+          "javascript"
+        ],
+        [
+          "HTML/CSS",
+          "html5"
+        ]
+      ]
+    },
+    {
+      "label": "Ship & test",
+      "accent": "sky",
+      "items": [
+        [
+          "Docker",
+          "docker"
+        ],
+        [
+          "GitHub Actions",
+          "githubactions"
+        ],
+        [
+          "Vercel",
+          "vercel"
+        ],
+        [
+          "AWS S3",
+          "amazons3"
+        ],
+        [
+          "Locust",
+          null
+        ]
+      ]
+    }
   ],
-
   "learning": [
-    ["Kubernetes", "kubernetes"], ["RAG & vector search", null],
-    ["React, deeper", "react"], ["AWS beyond S3", "amazonwebservices"]
+    [
+      "Kubernetes",
+      "kubernetes"
+    ],
+    [
+      "RAG & vector search",
+      null
+    ],
+    [
+      "React, deeper",
+      "react"
+    ],
+    [
+      "AWS beyond S3",
+      "amazonwebservices"
+    ]
   ],
-
-  "language_exclude": ["Jupyter Notebook", "Mako", "Dockerfile"],
-  "exclude_from_activity": ["Ompatel179/Ompatel179"]
+  "language_exclude": [
+    "Jupyter Notebook",
+    "Mako",
+    "Dockerfile"
+  ],
+  "exclude_from_activity": [
+    "Ompatel179/Ompatel179"
+  ]
 }

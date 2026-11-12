@@ -23,36 +23,15 @@ Before grad school I did research on deep learning for satellite imagery, which 
 ## Selected work
 
 <!-- PROJECTS:START -->
-<table>
-<tr>
-<td width="50%" valign="top">
-<a href="https://github.com/Ompatel179/Eventpass"><b>EventPass ↗</b></a> &nbsp;<picture><source media="(prefers-color-scheme: dark)" srcset="assets/status-shipped-dark.svg"><img src="assets/status-shipped-light.svg" alt="shipped" height="20"></picture>
-<p>QR-code check-in for student clubs. Students get a ticket, organizers scan it at the door from a phone, and every ticket checks in exactly once, even when several organizers scan at the same moment.</p>
-<p><b>0 duplicates</b> · 2,862 concurrent scans, ~950 req/s on one worker after I found and fixed a deadlock, 97% test coverage</p>
-<p><code>FastAPI</code> <code>PostgreSQL</code> <code>Redis</code> <code>Docker</code> <code>Locust</code></p>
-</td>
-<td width="50%" valign="top">
-<a href="https://github.com/Ompatel179/Harnessing_Generative_Adversarial_Models_to_Enhance_Satellite_Imagery_Quality"><b>Satellite SRGAN ↗</b></a> &nbsp;<picture><source media="(prefers-color-scheme: dark)" srcset="assets/status-published-dark.svg"><img src="assets/status-published-light.svg" alt="published" height="20"></picture>
-<p>A super-resolution GAN that sharpens satellite images 4×, trained in two stages: MSE pre-training, then adversarial fine-tuning with a VGG19 perceptual loss.</p>
-<p><b>Published at IEEE ICETA 2025</b> · 34.55 dB PSNR and 0.08 LPIPS in the paper</p>
-<p><code>PyTorch</code> <code>GANs</code> <code>VGG19</code> <code>OpenCV</code></p>
-</td>
-</tr>
-<tr>
-<td width="50%" valign="top">
-<a href="https://composur.tech"><b>Composur ↗</b></a> &nbsp;<picture><source media="(prefers-color-scheme: dark)" srcset="assets/status-live-dark.svg"><img src="assets/status-live-light.svg" alt="live" height="20"></picture><br><sub>built with <a href="https://github.com/RishiiShah">@RishiiShah</a></sub>
-<p>Practice technical interviews out loud. An LLM interviewer listens, asks adaptive follow-ups and scores the answers you actually gave.</p>
-<p><b>28 interview domains</b> · speech recognition → streaming LLM → text-to-speech</p>
-<p><code>Next.js</code> <code>TypeScript</code> <code>PostgreSQL</code> <code>Groq</code> <code>AWS S3</code></p>
-</td>
-<td width="50%" valign="top">
-<b>RAG project</b> &nbsp;<picture><source media="(prefers-color-scheme: dark)" srcset="assets/status-in-progress-dark.svg"><img src="assets/status-in-progress-light.svg" alt="in progress" height="20"></picture>
-<p>A retrieval-augmented generation system: LLM answers grounded in real documents, with retrieval quality I can measure instead of guess.</p>
-<p><b>Building now</b> · this cell turns into a real link when the repo goes public</p>
-<p><code>Python</code> <code>LLMs</code> <code>Embeddings</code> <code>Vector search</code></p>
-</td>
-</tr>
-</table>
+<p align="center">
+  <a href="https://github.com/Ompatel179/Eventpass"><picture><source media="(prefers-color-scheme: dark)" srcset="assets/card-eventpass-dark.svg"><img src="assets/card-eventpass-light.svg" alt="EventPass (shipped): QR-code check-in for student clubs. Every ticket scans exactly once, even when several organizers scan at the same moment. Stack: FastAPI, PostgreSQL, Redis, Docker, Actions."></picture></a>
+  <a href="https://github.com/Ompatel179/Harnessing_Generative_Adversarial_Models_to_Enhance_Satellite_Imagery_Quality"><picture><source media="(prefers-color-scheme: dark)" srcset="assets/card-satellite-srgan-dark.svg"><img src="assets/card-satellite-srgan-light.svg" alt="Satellite SRGAN (published): A GAN that sharpens satellite images 4×. The research behind it was published at IEEE ICETA 2025. Stack: PyTorch, GANs, VGG19, OpenCV."></picture></a>
+</p>
+<p align="center">
+  <a href="https://composur.tech"><picture><source media="(prefers-color-scheme: dark)" srcset="assets/card-composur-dark.svg"><img src="assets/card-composur-light.svg" alt="Composur (live): Voice mock interviews where an LLM interviewer asks adaptive follow-ups across 28 interview domains. Stack: Next.js, TypeScript, PostgreSQL, Llama 3.3, AWS S3."></picture></a>
+  <picture><source media="(prefers-color-scheme: dark)" srcset="assets/card-rag-project-dark.svg"><img src="assets/card-rag-project-light.svg" alt="RAG project (in progress): A retrieval-augmented generation system: LLM answers grounded in real documents, with retrieval quality I can measure. Stack: Python, LLMs, Embeddings, Vector search."></picture>
+</p>
+<p align="center"><sub><b>EventPass</b> <a href="https://github.com/Ompatel179/Eventpass">code</a> &nbsp;|&nbsp; <b>Satellite SRGAN</b> <a href="https://github.com/Ompatel179/Harnessing_Generative_Adversarial_Models_to_Enhance_Satellite_Imagery_Quality">code</a> &nbsp;|&nbsp; <b>Composur</b> <a href="https://composur.tech">live demo</a> · built with <a href="https://github.com/RishiiShah">@RishiiShah</a></sub></p>
 <!-- PROJECTS:END -->
 
 <details>
