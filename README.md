@@ -40,7 +40,7 @@ Before grad school I did research on deep learning for satellite imagery, which 
 </tr>
 <tr>
 <td width="50%" valign="top">
-<a href="https://snapinterview.app"><b>SnapInterview ↗</b></a> &nbsp;<picture><source media="(prefers-color-scheme: dark)" srcset="assets/status-live-dark.svg"><img src="assets/status-live-light.svg" alt="live" height="20"></picture>
+<a href="https://composur.tech"><b>Composur ↗</b></a> &nbsp;<picture><source media="(prefers-color-scheme: dark)" srcset="assets/status-live-dark.svg"><img src="assets/status-live-light.svg" alt="live" height="20"></picture>
 <p>Practice technical interviews out loud. An LLM interviewer listens, asks adaptive follow-ups and scores the answers you actually gave.</p>
 <p><b>28 interview domains</b> · speech recognition → streaming LLM → text-to-speech</p>
 <p><code>Next.js</code> <code>TypeScript</code> <code>PostgreSQL</code> <code>Groq</code> <code>AWS S3</code></p>
@@ -91,7 +91,7 @@ I build something small with each one, so it ends up in a repo and not just in m
 
 - **RAG and vector search:** chunking, embeddings and retrieval evaluation, all going into the RAG project above.
 - **Kubernetes:** taking EventPass from Docker Compose to a small cluster deployment.
-- **React, deeper:** state, data fetching and component design beyond what Next.js gave me in SnapInterview.
+- **React, deeper:** state, data fetching and component design beyond what Next.js gave me in Composur.
 - **AWS beyond S3:** compute and deployment services, so I can host my own projects end to end.
 
 </details>

@@ -25,9 +25,9 @@
       "status": "published"
     },
     {
-      "title": "SnapInterview",
-      "url": "https://snapinterview.app",
-      "homepage": "https://snapinterview.app",
+      "title": "Composur",
+      "url": "https://composur.tech",
+      "homepage": "https://composur.tech",
       "pitch": "Practice technical interviews out loud. An LLM interviewer listens, asks adaptive follow-ups and scores the answers you actually gave.",
       "highlight": "28 interview domains",
       "detail": "speech recognition → streaming LLM → text-to-speech",
