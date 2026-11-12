@@ -428,7 +428,7 @@ def activity_section(events: list[dict]) -> str:
         repo = e["repo"]["name"]
         short = repo.split("/", 1)[1]
         repo_link = f"[{short}](https://github.com/{repo})"
-        when = datetime.fromisoformat(e["created_at"].replace("Z", "+00:00")).strftime("%b %d")
+        when = datetime.fromisoformat(e["created_at"].replace("Z", "+00:00")).strftime("%b&nbsp;%d")
         p, kind = e["payload"], e["type"]
         text = None
         if kind == "PullRequestEvent":
@@ -454,7 +454,7 @@ def activity_section(events: list[dict]) -> str:
             branch = (p.get("ref") or "").replace("refs/heads/", "")
             text = f"Pushed to `{branch}` in {repo_link}" if branch else f"Pushed to {repo_link}"
         if text:
-            items.append(f"- {text} <sub>· {when}</sub>")
+            items.append(f"- {text} <sub>·&nbsp;{when}</sub>")
         if len(items) == 5:
             break
     return "\n".join(items) if items else "- Quiet week. Probably reading papers."

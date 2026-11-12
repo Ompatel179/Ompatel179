@@ -75,11 +75,11 @@ I keep a short list and build something small with each item, so it ends up in a
 ### Recent activity
 
 <!-- ACTIVITY:START -->
-- Merged PR [#16](https://github.com/Ompatel179/Eventpass/pull/16) *Enforce event capacity with a row lock, fix ticket card bug, update README with screenshots* in [Eventpass](https://github.com/Ompatel179/Eventpass) <sub>· Nov 12</sub>
-- Merged PR [#15](https://github.com/Ompatel179/Eventpass/pull/15) *Add full website: public events, sign-up, tickets, organizer dashboard, shared scanner login* in [Eventpass](https://github.com/Ompatel179/Eventpass) <sub>· Nov 12</sub>
-- Merged PR [#14](https://github.com/Ompatel179/Eventpass/pull/14) *Store all times as timestamptz and require time zones in the API* in [Eventpass](https://github.com/Ompatel179/Eventpass) <sub>· Nov 12</sub>
-- Merged PR [#13](https://github.com/Ompatel179/Eventpass/pull/13) *Add README with architecture, design decisions and load-test results* in [Eventpass](https://github.com/Ompatel179/Eventpass) <sub>· Nov 09</sub>
-- Merged PR [#12](https://github.com/Ompatel179/Eventpass/pull/12) *Index registrations by user* in [Eventpass](https://github.com/Ompatel179/Eventpass) <sub>· Nov 09</sub>
+- Merged PR [#16](https://github.com/Ompatel179/Eventpass/pull/16) *Enforce event capacity with a row lock, fix ticket card bug, update README with screenshots* in [Eventpass](https://github.com/Ompatel179/Eventpass) <sub>·&nbsp;Nov&nbsp;12</sub>
+- Merged PR [#15](https://github.com/Ompatel179/Eventpass/pull/15) *Add full website: public events, sign-up, tickets, organizer dashboard, shared scanner login* in [Eventpass](https://github.com/Ompatel179/Eventpass) <sub>·&nbsp;Nov&nbsp;12</sub>
+- Merged PR [#14](https://github.com/Ompatel179/Eventpass/pull/14) *Store all times as timestamptz and require time zones in the API* in [Eventpass](https://github.com/Ompatel179/Eventpass) <sub>·&nbsp;Nov&nbsp;12</sub>
+- Merged PR [#13](https://github.com/Ompatel179/Eventpass/pull/13) *Add README with architecture, design decisions and load-test results* in [Eventpass](https://github.com/Ompatel179/Eventpass) <sub>·&nbsp;Nov&nbsp;09</sub>
+- Merged PR [#12](https://github.com/Ompatel179/Eventpass/pull/12) *Index registrations by user* in [Eventpass](https://github.com/Ompatel179/Eventpass) <sub>·&nbsp;Nov&nbsp;09</sub>
 <!-- ACTIVITY:END -->
 
 ### Say hi
