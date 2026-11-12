@@ -19,7 +19,7 @@
   <rect x="24" y="24" width="89.2" height="22" rx="11" fill="#1C746C" fill-opacity="0.14"/>
   <circle cx="36" cy="35" r="4" fill="#1C746C"/>
   <text x="45" y="39.5" font-size="12" font-weight="700" fill="#1C746C">published</text>
-  <text x="376" y="40" text-anchor="end" font-size="11.5" fill="#6B6274">updated May 2026</text>
+  
   <text x="24" y="76" font-size="22" font-weight="800" fill="#2A2433" letter-spacing="-0.3">Satellite SRGAN</text>
   <text x="24" y="102" font-size="13.5" fill="#6B6274"><tspan x="24" dy="0">A GAN that sharpens satellite images 4×. The</tspan><tspan x="24" dy="19.5">research behind it was published at IEEE ICETA</tspan><tspan x="24" dy="19.5">2025.</tspan></text>
   <text x="24" y="166.0" font-family="ui-monospace,SFMono-Regular,Menlo,Consolas,monospace" font-size="12" font-weight="700" fill="#1C746C">paper: 34.55 dB PSNR · 0.08 LPIPS</text>
