@@ -28,6 +28,7 @@
       "title": "Composur",
       "url": "https://composur.tech",
       "homepage": "https://composur.tech",
+      "built_with": ["RishiiShah"],
       "pitch": "Practice technical interviews out loud. An LLM interviewer listens, asks adaptive follow-ups and scores the answers you actually gave.",
       "highlight": "28 interview domains",
       "detail": "speech recognition → streaming LLM → text-to-speech",

@@ -444,6 +444,9 @@ def project_cell(p: dict) -> str:
     extra = ""
     if p.get("repo_url") and p.get("homepage"):
         extra = f' · <a href="{p["homepage"]}">live demo</a>'
+    if p.get("built_with"):
+        who = ", ".join(f'<a href="https://github.com/{h}">@{h}</a>' for h in p["built_with"])
+        extra += f'<br><sub>built with {who}</sub>'
     status = picture(f'status-{slug(p["status"])}', p["status"], ' height="20"')
     tags = " ".join(f"<code>{x(s)}</code>" for s in p["stack"])
     return (f'<td width="50%" valign="top">\n{title} &nbsp;{status}{extra}\n'
