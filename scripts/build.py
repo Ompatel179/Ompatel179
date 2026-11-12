@@ -1,13 +1,15 @@
 #!/usr/bin/env python3
 """Regenerate the profile README's SVGs and data sections.
 
-Standard library only. Reads scripts/profile.json, pulls public repo data and
-recent public events from the GitHub API, then:
-  * writes assets/header-{light,dark}.svg
-  * writes assets/card-<slug>-{light,dark}.svg for each featured project
-  * writes assets/stack-{light,dark}.svg
+Standard library only. Reads scripts/profile.json, pulls public repo data,
+language byte counts and recent public events from the GitHub API, then:
+  * writes assets/header-{light,dark}.svg      (animated header + illustration)
+  * writes assets/status-<status>-{theme}.svg  (small status pills)
+  * writes assets/panel-<name>-{theme}.svg     (stack, learning, language mix)
   * rewrites README.md between <!-- NAME:START --> / <!-- NAME:END --> markers
     for PROJECTS, MORE and ACTIVITY.
+
+Icons in assets/icons/ are from Simple Icons (CC0) and are inlined as paths.
 
 Usage:  GITHUB_TOKEN=... python3 scripts/build.py
 The token is optional (unauthenticated calls work, with a lower rate limit).
@@ -20,27 +22,29 @@ import re
 import sys
 import urllib.error
 import urllib.request
-from datetime import datetime, timezone
+from datetime import datetime
 from html import escape
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
 ASSETS = ROOT / "assets"
+ICONS = ASSETS / "icons"
 README = ROOT / "README.md"
 CONFIG = json.loads((ROOT / "scripts" / "profile.json").read_text())
 USER = CONFIG["username"]
 API = "https://api.github.com"
 
 # --------------------------------------------------------------------------
-# Palette: warm paper + ink, with a wide set of accents. Each accent has a
-# light-theme value (dark enough for text on paper, >= 4.5:1) and a
-# dark-theme value (bright enough on ink).
+# Palette: warm paper + ink, with a wide set of accents. Light-theme accents
+# are dark enough for text on paper; dark-theme accents are bright on ink.
 # --------------------------------------------------------------------------
 THEMES = {
     "light": {"bg": "#FFFAF2", "border": "#EADFCC", "ink": "#2A2433",
-              "muted": "#6B6274", "chip": "#F6EEDF"},
+              "muted": "#6B6274", "chip": "#F6EEDF",
+              "wood": "#C08A4E", "device": "#3A3346", "screen": "#211D2B"},
     "dark":  {"bg": "#17151F", "border": "#2F2A3D", "ink": "#F4EEE4",
-              "muted": "#A9A1B5", "chip": "#221F2D"},
+              "muted": "#A9A1B5", "chip": "#221F2D",
+              "wood": "#A87443", "device": "#4A445A", "screen": "#0F0D16"},
 }
 ACCENTS = {
     "terracotta": {"light": "#B9481F", "dark": "#FF8A65"},
@@ -51,8 +55,11 @@ ACCENTS = {
     "rose":       {"light": "#B3325A", "dark": "#FF7AA2"},
     "sage":       {"light": "#3F6F2C", "dark": "#9ED07F"},
 }
+STATUS_ACCENT = {"shipped": "terracotta", "published": "teal", "live": "sage",
+                 "in progress": "mustard"}
 SANS = "-apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,Arial,sans-serif"
 MONO = "ui-monospace,SFMono-Regular,Menlo,Consolas,monospace"
+REDUCED_MOTION = "@media (prefers-reduced-motion: reduce){*{animation:none!important}}"
 
 
 def accent(name: str, theme: str) -> str:
@@ -95,6 +102,24 @@ def find_repo(repos: dict[str, dict], name: str) -> dict | None:
         return None
     print(f"  note: '{name}' is now '{r['name']}'; update scripts/profile.json")
     return r
+
+
+def language_mix(repos: dict[str, dict]) -> list[tuple[str, float]]:
+    skip = set(CONFIG.get("language_exclude", []))
+    totals: dict[str, int] = {}
+    for r in repos.values():
+        if r.get("fork") or r["name"] == USER:
+            continue
+        for lang, n in gh(f"/repos/{USER}/{r['name']}/languages").items():
+            if lang not in skip:
+                totals[lang] = totals.get(lang, 0) + n
+    total = sum(totals.values()) or 1
+    ranked = sorted(totals.items(), key=lambda kv: -kv[1])
+    top = [(k, v / total * 100) for k, v in ranked[:5]]
+    rest = sum(v for _, v in ranked[5:]) / total * 100
+    if rest >= 0.05:
+        top.append(("Other", rest))
+    return top
 
 
 # --------------------------------------------------------------------------
@@ -154,6 +179,10 @@ def x(text: str) -> str:
     return escape(text, quote=True)
 
 
+def slug(s: str) -> str:
+    return re.sub(r"[^a-z0-9]+", "-", s.lower()).strip("-")
+
+
 def write(path: Path, content: str) -> None:
     path.parent.mkdir(parents=True, exist_ok=True)
     old = path.read_text() if path.exists() else None
@@ -162,257 +191,271 @@ def write(path: Path, content: str) -> None:
         print(f"  wrote {path.relative_to(ROOT)}")
 
 
-REDUCED_MOTION = "@media (prefers-reduced-motion: reduce){*{animation:none!important}}"
+def icon_path(name: str | None) -> str | None:
+    if not name:
+        return None
+    f = ICONS / f"{name}.svg"
+    if not f.exists():
+        return None
+    m = re.search(r'<path d="([^"]+)"', f.read_text())
+    return m.group(1) if m else None
+
+
+def svg_open(W: int, H: int, title: str, desc: str, style: str) -> str:
+    return (f'<svg xmlns="http://www.w3.org/2000/svg" width="{W}" height="{H}" viewBox="0 0 {W} {H}" '
+            f'role="img" aria-labelledby="t d">\n<title id="t">{x(title)}</title>\n<desc id="d">{x(desc)}</desc>\n'
+            f'<style>{style}{REDUCED_MOTION}</style>\n')
 
 
 # --------------------------------------------------------------------------
-# Header
+# Header: editorial left column + original desk illustration on the right
 # --------------------------------------------------------------------------
+def illustration(theme: str) -> str:
+    t = THEMES[theme]
+    A = lambda n: accent(n, theme)  # noqa: E731
+    # laptop screen: blocky low-res half on the left, sharp half on the right
+    blocks, colors = [], [A("teal"), A("sky"), A("sage"), A("teal")]
+    for i in range(2):
+        for j in range(3):
+            blocks.append(f'<rect x="{84 + j*12}" y="{100 + i*20}" width="12" height="20" fill="{colors[(i+j) % 4]}" opacity="{0.55 + 0.15*((i+j) % 3)}"/>')
+    for i in range(8):
+        for j in range(6):
+            blocks.append(f'<rect x="{120 + j*6}" y="{100 + i*5}" width="6" height="5" fill="{colors[(i//2 + j//2) % 4]}" opacity="{0.6 + 0.08*((i+j) % 4)}"/>')
+    stars = "".join(
+        f'<circle class="tw" style="animation-delay:{d}s" cx="{cx}" cy="{cy}" r="{r}" fill="{A(c)}"/>'
+        for cx, cy, r, c, d in [(30, 30, 3, "mustard", 0), (250, 20, 2.5, "rose", 0.8),
+                                (200, 50, 2, "sky", 1.6), (60, 70, 2, "plum", 1.1)])
+    orbit = "M 20 78 Q 140 -10 262 70"
+    return f'''<g transform="translate(500,14)">
+  {stars}
+  <path d="{orbit}" fill="none" stroke="{t["border"]}" stroke-width="1.5" stroke-dasharray="3 5"/>
+  <g>
+    <animateMotion path="{orbit}" dur="14s" repeatCount="indefinite" rotate="auto"/>
+    <rect x="-5" y="-4" width="10" height="8" rx="2" fill="{t["device"]}"/>
+    <rect x="-17" y="-3" width="10" height="6" fill="{A("sky")}"/>
+    <rect x="7" y="-3" width="10" height="6" fill="{A("sky")}"/>
+    <circle cx="0" cy="-7" r="2" fill="{A("rose")}"/>
+  </g>
+  <circle class="glow" cx="204" cy="126" r="24" fill="{A("mustard")}" opacity="0.16"/>
+  <!-- lamp -->
+  <rect x="206" y="166" width="22" height="5" rx="2" fill="{t["device"]}"/>
+  <path d="M217 166 L 226 128 L 204 104" fill="none" stroke="{t["device"]}" stroke-width="3.5" stroke-linecap="round"/>
+  <path d="M190 116 L 204 96 L 214 110 Z" fill="{A("terracotta")}"/>
+  <!-- books -->
+  <rect x="34" y="152" width="40" height="9" rx="2" fill="{A("sky")}"/>
+  <rect x="38" y="143" width="34" height="9" rx="2" fill="{A("rose")}"/>
+  <rect x="36" y="134" width="30" height="9" rx="2" fill="{A("mustard")}"/>
+  <!-- laptop -->
+  <rect x="78" y="94" width="90" height="62" rx="5" fill="{t["device"]}"/>
+  <rect x="84" y="100" width="78" height="40" fill="{t["screen"]}"/>
+  {"".join(blocks)}
+  <rect class="scan" x="84" y="100" width="2" height="40" fill="{t["ink"]}" opacity="0.7"/>
+  <path d="M70 156 H 176 L 170 162 H 76 Z" fill="{t["device"]}"/>
+  <!-- mug + steam -->
+  <rect x="182" y="146" width="16" height="16" rx="3" fill="{A("plum")}"/>
+  <path d="M198 150 q 6 0 6 5 t -6 5" fill="none" stroke="{A("plum")}" stroke-width="2.5"/>
+  <path class="steam" d="M187 140 q -4 -6 0 -12 t 0 -12" fill="none" stroke="{t["muted"]}" stroke-width="2" stroke-linecap="round"/>
+  <path class="steam" style="animation-delay:1.2s" d="M194 140 q -4 -6 0 -12 t 0 -12" fill="none" stroke="{t["muted"]}" stroke-width="2" stroke-linecap="round"/>
+  <!-- plant -->
+  <g class="sway">
+    <ellipse cx="246" cy="128" rx="7" ry="16" fill="{A("sage")}" transform="rotate(-28 246 140)"/>
+    <ellipse cx="256" cy="124" rx="7" ry="18" fill="{A("sage")}" transform="rotate(8 256 140)"/>
+    <ellipse cx="264" cy="132" rx="6" ry="14" fill="{A("teal")}" transform="rotate(38 264 144)"/>
+  </g>
+  <path d="M240 142 H 270 L 266 162 H 244 Z" fill="{A("terracotta")}"/>
+  <!-- desk -->
+  <rect x="24" y="162" width="256" height="9" rx="3" fill="{t["wood"]}"/>
+  <rect x="40" y="171" width="7" height="58" fill="{t["wood"]}"/>
+  <rect x="256" y="171" width="7" height="58" fill="{t["wood"]}"/>
+  <rect x="47" y="196" width="209" height="4" fill="{t["wood"]}" opacity="0.6"/>
+</g>'''
+
+
 def header_svg(theme: str) -> str:
     t = THEMES[theme]
-    W, H = 800, 210
-    greet = "Hi, I'm "
-    name = CONFIG["name"]
-    line = greet + name
-    size = 50
-    x0, y0 = 40, 122
+    W, H = 800, 262
+    x0 = 58
+    name, size, name_y = CONFIG["name"], 66, 150
 
-    # discrete typing steps: clip width after each character
-    # the generic estimator runs ~15% wide for this heavy display weight; scale it
-    # for the cursor, and let the final clip value overshoot so nothing is cut off
-    steps = [0.0] + [0.85 * text_width(line[: i + 1], size, bold=True) for i in range(len(line))]
+    steps = [0.0] + [0.85 * text_width(name[: i + 1], size, bold=True) for i in range(len(name))]
     clip_vals = ";".join(f"{s:.1f}" for s in steps[:-1]) + f";{steps[-1] + 60:.1f}"
     cursor_vals = ";".join(f"{x0 + s + 6:.1f}" for s in steps)
-    type_dur = 0.09 * len(line)
+    type_dur = 0.11 * len(name)
 
-    # role line: each segment gets its own accent
-    parts = [p.strip() for p in CONFIG["role"].split("·")]
-    colors = ["terracotta", "teal", "plum", "sky", "sage"]
-    role_size = 23
-    spans = []
-    for i, part in enumerate(parts):
+    role_colors = ["terracotta", "teal", "plum", "sky"]
+    roles = []
+    for i, r in enumerate(CONFIG["roles"]):
         if i:
-            spans.append(f'<tspan dx="12" fill="{t["muted"]}">·</tspan>')
-        dx = ' dx="12"' if i else ""
-        spans.append(f'<tspan{dx} fill="{accent(colors[i % len(colors)], theme)}">{x(part)}</tspan>')
+            roles.append(f'<tspan fill="{t["muted"]}"> / </tspan>')
+        roles.append(f'<tspan fill="{accent(role_colors[i % 4], theme)}">{x(r)}</tspan>')
 
-    note = CONFIG["header_note"]
-    note_w = text_width(note, 13, bold=True) + 26
+    meta = []
+    for i, m in enumerate(CONFIG["meta"]):
+        fill = t["ink"] if i == 0 else t["muted"]
+        dx = ' dx="26"' if i else ""
+        meta.append(f'<tspan{dx} fill="{fill}">{x(m)}</tspan>')
 
-    # playful dot constellation on the right
-    dots = [
-        (640, 64, 15, "terracotta", 0.0), (700, 46, 9, "mustard", 0.6),
-        (742, 92, 20, "teal", 1.2), (676, 118, 11, "plum", 0.3),
-        (724, 158, 13, "rose", 0.9), (650, 170, 7, "sky", 1.5),
-        (764, 140, 6, "sage", 0.45),
-    ]
-    dot_svg = "\n".join(
-        f'<circle class="bob" style="animation-delay:{d}s" cx="{cx_}" cy="{cy}" r="{r}" fill="{accent(c, theme)}"/>'
-        for cx_, cy, r, c, d in dots
+    style = (
+        ".fade{animation:fade .8s ease-out both}"
+        "@keyframes fade{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}"
+        ".blink{animation:blink 1s steps(1) infinite}@keyframes blink{50%{opacity:0}}"
+        ".grow{transform-box:fill-box;transform-origin:left;animation:grow 1s ease-out both}"
+        "@keyframes grow{from{transform:scaleX(0)}to{transform:scaleX(1)}}"
+        ".tw{animation:tw 3s ease-in-out infinite}@keyframes tw{50%{opacity:.2}}"
+        ".glow{animation:glow 4s ease-in-out infinite}@keyframes glow{50%{opacity:.07}}"
+        ".scan{animation:scan 3.5s ease-in-out infinite}@keyframes scan{0%,100%{transform:translateX(0)}50%{transform:translateX(76px)}}"
+        ".steam{animation:steam 2.4s ease-out infinite}@keyframes steam{0%{opacity:0;transform:translateY(4px)}40%{opacity:.8}100%{opacity:0;transform:translateY(-6px)}}"
+        ".sway{transform-box:fill-box;transform-origin:bottom center;animation:sway 5s ease-in-out infinite}"
+        "@keyframes sway{0%,100%{transform:rotate(-3deg)}50%{transform:rotate(3deg)}}"
     )
-    squiggle = accent("mustard", theme)
-
-    return f'''<svg xmlns="http://www.w3.org/2000/svg" width="{W}" height="{H}" viewBox="0 0 {W} {H}" role="img" aria-labelledby="t d">
-<title id="t">{x(line)}</title>
-<desc id="d">{x(CONFIG["role"])}. {x(note)}.</desc>
-<style>
-.bob{{animation:bob 5s ease-in-out infinite;transform-box:fill-box;transform-origin:center}}
-@keyframes bob{{0%,100%{{transform:translateY(0)}}50%{{transform:translateY(-6px)}}}}
-.fade{{animation:fade .8s ease-out both}}
-@keyframes fade{{from{{opacity:0;transform:translateY(6px)}}to{{opacity:1;transform:none}}}}
-.blink{{animation:blink 1s steps(1) infinite}}
-@keyframes blink{{50%{{opacity:0}}}}
-.draw{{stroke-dasharray:240;animation:draw 1.6s ease-out 1.4s both}}
-@keyframes draw{{from{{stroke-dashoffset:240}}to{{stroke-dashoffset:0}}}}
-{REDUCED_MOTION}
-</style>
-<rect x="1" y="1" width="{W-2}" height="{H-2}" rx="18" fill="{t["bg"]}" stroke="{t["border"]}" stroke-width="1.5"/>
-<g class="fade">
-  <rect x="{x0}" y="34" width="{note_w:.1f}" height="26" rx="13" fill="{t["chip"]}" stroke="{t["border"]}"/>
-  <circle cx="{x0+14}" cy="47" r="4" fill="{accent("sage", theme)}"/>
-  <text x="{x0+24}" y="51.5" font-family="{SANS}" font-size="13" font-weight="600" fill="{t["muted"]}">{x(note)}</text>
+    desc = f'{" / ".join(CONFIG["roles"])}. {", ".join(CONFIG["meta"])}. Illustration of a desk with a laptop sharpening a pixelated image, a lamp, books, a mug and a plant, with a satellite orbiting above.'
+    return svg_open(W, H, name, desc, style) + f'''<rect x="1" y="1" width="{W-2}" height="{H-2}" rx="18" fill="{t["bg"]}" stroke="{t["border"]}" stroke-width="1.5"/>
+<rect x="30" y="30" width="5" height="{H-60}" rx="2.5" fill="{accent("terracotta", theme)}"/>
+<g font-family="{MONO}">
+  <text class="fade" x="{x0}" y="58" font-size="15" fill="{t["muted"]}">{x(CONFIG["handle"])}</text>
+  <line class="fade" x1="{x0}" x2="470" y1="74" y2="74" stroke="{t["border"]}" stroke-width="1.5"/>
 </g>
-<clipPath id="type"><rect x="{x0}" y="{y0-50}" width="{steps[-1] + 20:.1f}" height="66">
+<clipPath id="type"><rect x="{x0}" y="{name_y-62}" width="{steps[-1] + 60:.1f}" height="80">
   <animate attributeName="width" values="{clip_vals}" calcMode="discrete" dur="{type_dur:.2f}s" begin="0s" fill="freeze"/>
 </rect></clipPath>
-<text x="{x0}" y="{y0}" clip-path="url(#type)" font-family="{SANS}" font-size="{size}" font-weight="800" fill="{t["ink"]}" letter-spacing="-0.5">{x(greet)}<tspan fill="{accent("terracotta", theme)}">{x(name)}</tspan></text>
-<rect class="blink" x="{x0 + steps[-1] + 6:.1f}" y="{y0-40}" width="4" height="46" rx="2" fill="{accent("teal", theme)}">
+<text x="{x0}" y="{name_y}" clip-path="url(#type)" font-family="{SANS}" font-size="{size}" font-weight="800" fill="{t["ink"]}" letter-spacing="-1">{x(name)}</text>
+<rect class="blink" x="{x0 + steps[-1] + 6:.1f}" y="{name_y-50}" width="5" height="56" rx="2" fill="{accent("teal", theme)}">
   <animate attributeName="x" values="{cursor_vals}" calcMode="discrete" dur="{type_dur:.2f}s" begin="0s" fill="freeze"/>
 </rect>
-<text class="fade" style="animation-delay:{type_dur+0.4:.2f}s" x="{x0}" y="{y0+46}" font-family="{SANS}" font-size="{role_size}" font-weight="700">{"".join(spans)}</text>
-<path class="draw" d="M {x0} {y0+64} q 20 -10 40 0 t 40 0 t 40 0 t 40 0" fill="none" stroke="{squiggle}" stroke-width="3" stroke-linecap="round"/>
-{dot_svg}
+<text class="fade" style="animation-delay:{type_dur:.2f}s" x="{x0}" y="188" font-family="{MONO}" font-size="17" font-weight="600">{"".join(roles)}</text>
+<rect class="grow" style="animation-delay:{type_dur + 0.3:.2f}s" x="{x0}" y="204" width="120" height="4" rx="2" fill="{accent("terracotta", theme)}"/>
+<text class="fade" style="animation-delay:{type_dur + 0.5:.2f}s" x="{x0}" y="236" font-family="{MONO}" font-size="13" font-weight="600">{"".join(meta)}</text>
+{illustration(theme)}
 </svg>
 '''
 
 
 # --------------------------------------------------------------------------
-# Project cards
+# Status pills
 # --------------------------------------------------------------------------
-STATUS_DOT_PULSE = {"live", "in progress"}
+def status_svg(status: str, theme: str) -> str:
+    a = accent(STATUS_ACCENT.get(status, "sky"), theme)
+    W, H = int(text_width(status, 12, bold=True) + 30), 22
+    pulse = ' class="pulse"' if status in ("live", "in progress") else ""
+    style = ".pulse{animation:pulse 1.8s ease-in-out infinite}@keyframes pulse{50%{opacity:.25}}"
+    return svg_open(W, H, status, f"Status: {status}", style) + f'''<rect width="{W}" height="{H}" rx="11" fill="{a}" fill-opacity="0.15"/>
+<circle{pulse} cx="12" cy="11" r="4" fill="{a}"/>
+<text x="21" y="15.5" font-family="{SANS}" font-size="12" font-weight="700" fill="{a}">{x(status)}</text>
+</svg>
+'''
 
 
-def card_svg(p: dict, theme: str) -> str:
+# --------------------------------------------------------------------------
+# Panels (two per row in the README, one per row on phones)
+# --------------------------------------------------------------------------
+PANEL_W, PANEL_H, PAD = 400, 182, 24
+
+
+def panel_frame(theme: str, title: str, color: str, body: str, desc: str, style: str = "") -> str:
     t = THEMES[theme]
-    a = accent(p["accent"], theme)
-    W, H, pad = 400, 230, 24
-    inner = W - 2 * pad
-
-    status = p["status"]
-    st_w = text_width(status, 12, bold=True) + 30
-    updated = p.get("updated", "")
-
-    title_y = 76
-    lines = wrap(p["pitch"], 13.5, inner, 3)
-    pitch = "".join(
-        f'<tspan x="{pad}" dy="{0 if i == 0 else 19.5}">{x(l)}</tspan>' for i, l in enumerate(lines)
-    )
-    pitch_y = 102
-    stats_y = pitch_y + 19.5 * (len(lines) - 1) + 25
-    stats = p["stats"]
-    while text_width(stats, 12, mono=True) > inner and " · " in stats:
-        stats = stats.rsplit(" · ", 1)[0]
-
-    chips, cx, chip_y = [], pad, H - 48
-    for item in p["stack"]:
-        w = text_width(item, 12) + 18
-        if cx + w > W - pad:
-            break
-        chips.append(
-            f'<rect x="{cx:.1f}" y="{chip_y}" width="{w:.1f}" height="24" rx="12" fill="{t["chip"]}" stroke="{t["border"]}"/>'
-            f'<text x="{cx + w/2:.1f}" y="{chip_y+16}" text-anchor="middle" font-size="12" fill="{t["ink"]}">{x(item)}</text>'
-        )
-        cx += w + 6
-
-    pulse = ' class="pulse"' if status in STATUS_DOT_PULSE else ""
-    upd = (f'<text x="{W-pad}" y="40" text-anchor="end" font-size="11.5" fill="{t["muted"]}">{x(updated)}</text>'
-           if updated else "")
-
-    return f'''<svg xmlns="http://www.w3.org/2000/svg" width="{W}" height="{H}" viewBox="0 0 {W} {H}" role="img" aria-labelledby="t d">
-<title id="t">{x(p["title"])} ({x(status)})</title>
-<desc id="d">{x(p["pitch"])} {x(p["stats"])}. Built with {x(", ".join(p["stack"]))}.</desc>
-<style>
-.blob{{animation:breathe 7s ease-in-out infinite;transform-box:fill-box;transform-origin:center}}
-@keyframes breathe{{0%,100%{{transform:scale(1)}}50%{{transform:scale(1.12)}}}}
-.pulse{{animation:pulse 1.8s ease-in-out infinite}}
-@keyframes pulse{{0%,100%{{opacity:1}}50%{{opacity:.25}}}}
-{REDUCED_MOTION}
-</style>
-<clipPath id="c"><rect x="1" y="1" width="{W-2}" height="{H-2}" rx="16"/></clipPath>
-<g clip-path="url(#c)">
-  <rect x="1" y="1" width="{W-2}" height="{H-2}" fill="{t["bg"]}"/>
-  <circle class="blob" cx="{W-18}" cy="{H-6}" r="62" fill="{a}" opacity="0.13"/>
-  <rect x="1" y="1" width="6" height="{H-2}" fill="{a}"/>
-</g>
-<rect x="1" y="1" width="{W-2}" height="{H-2}" rx="16" fill="none" stroke="{t["border"]}" stroke-width="1.5"/>
-<g font-family="{SANS}">
-  <rect x="{pad}" y="24" width="{st_w:.1f}" height="22" rx="11" fill="{a}" fill-opacity="0.14"/>
-  <circle{pulse} cx="{pad+12}" cy="35" r="4" fill="{a}"/>
-  <text x="{pad+21}" y="39.5" font-size="12" font-weight="700" fill="{a}">{x(status)}</text>
-  {upd}
-  <text x="{pad}" y="{title_y}" font-size="22" font-weight="800" fill="{t["ink"]}" letter-spacing="-0.3">{x(p["title"])}</text>
-  <text x="{pad}" y="{pitch_y}" font-size="13.5" fill="{t["muted"]}">{pitch}</text>
-  <text x="{pad}" y="{stats_y:.1f}" font-family="{MONO}" font-size="12" font-weight="700" fill="{a}">{x(stats)}</text>
-  {"".join(chips)}
-</g>
+    a = accent(color, theme)
+    return svg_open(PANEL_W, PANEL_H, title, desc, style) + f'''<rect x="1" y="1" width="{PANEL_W-2}" height="{PANEL_H-2}" rx="16" fill="{t["bg"]}" stroke="{t["border"]}" stroke-width="1.5"/>
+<rect x="{PAD}" y="26" width="18" height="4" rx="2" fill="{a}"/>
+<text x="{PAD}" y="52" font-family="{SANS}" font-size="16" font-weight="800" fill="{t["ink"]}">{x(title)}</text>
+<g font-family="{SANS}">{body}</g>
 </svg>
 '''
 
 
-# --------------------------------------------------------------------------
-# Tech stack
-# --------------------------------------------------------------------------
-def stack_svg(theme: str) -> str:
+def icon_tiles(items: list, color: str, theme: str, dashed: bool = False) -> str:
     t = THEMES[theme]
-    W, pad, label_w = 520, 22, 104
-    chip_h, gap, row_gap = 26, 7, 10
-    max_x = W - pad
-    rows_svg, y = [], 30
+    a = accent(color, theme)
+    out, cx, y = [], PAD, 66
+    for label, icon, *tile_text in items:
+        stroke = f'stroke="{a}" stroke-dasharray="4 3"' if dashed else f'stroke="{t["border"]}"'
+        out.append(f'<rect x="{cx}" y="{y}" width="42" height="42" rx="11" fill="{t["chip"]}" {stroke} stroke-width="1.3"/>')
+        path = icon_path(icon)
+        if path:
+            out.append(f'<path transform="translate({cx+10},{y+10}) scale({22/24:.4f})" d="{path}" fill="{a}"/>')
+        else:
+            first = re.findall(r"[A-Za-z]+", label)[0]
+            initials = tile_text[0] if tile_text else (first if first.isupper() else first[:2])[:3]
+            out.append(f'<text x="{cx+21}" y="{y+26}" text-anchor="middle" font-size="12" font-weight="800" fill="{a}">{x(initials)}</text>')
+        cx += 50
+    return "".join(out)
 
-    def chip_row(label, color, items, dashed=False):
-        nonlocal y
-        a = accent(color, theme)
-        out = [f'<text x="{pad}" y="{y+17}" font-size="12.5" font-weight="700" fill="{a}">{x(label)}</text>']
-        cx = pad + label_w
-        for item in items:
-            w = text_width(item, 13) + 22 + (12 if dashed else 0)
-            if cx + w > max_x:
-                cx = pad + label_w
-                y += chip_h + gap
-            dash = ' stroke-dasharray="4 3"' if dashed else ""
-            fill = "none" if dashed else t["chip"]
-            stroke = a if dashed else t["border"]
-            out.append(f'<rect x="{cx:.1f}" y="{y}" width="{w:.1f}" height="{chip_h}" rx="13" fill="{fill}" stroke="{stroke}" stroke-width="1.3"{dash}/>')
-            tx = cx + 11
-            if dashed:
-                out.append(f'<circle class="pulse" cx="{cx+12:.1f}" cy="{y+13}" r="3.5" fill="{a}"/>')
-                tx += 11
-            out.append(f'<text x="{tx:.1f}" y="{y+17.5}" font-size="13" fill="{t["ink"]}">{x(item)}</text>')
-            cx += w + gap
-        y += chip_h + row_gap
-        return "".join(out)
 
-    rows_svg.append(f'<text x="{pad}" y="{y}" font-size="15" font-weight="800" fill="{t["ink"]}">Built with</text>')
-    y += 14
-    for group in CONFIG["stack"]:
-        rows_svg.append(chip_row(group["label"], group["accent"], group["items"]))
+def label_lines(labels: list[str], theme: str, y: float = 132) -> str:
+    t = THEMES[theme]
+    lines = wrap(" · ".join(labels), 13, PANEL_W - 2 * PAD, 2)
+    return "".join(f'<text x="{PAD}" y="{y + i*19}" font-size="13" fill="{t["muted"]}">{x(l)}</text>'
+                   for i, l in enumerate(lines))
 
-    y += 12
-    rows_svg.append(f'<line x1="{pad}" x2="{W-pad}" y1="{y}" y2="{y}" stroke="{t["border"]}" stroke-dasharray="2 4"/>')
-    y += 30
-    rows_svg.append(f'<text x="{pad}" y="{y}" font-size="15" font-weight="800" fill="{t["ink"]}">Learning right now</text>')
-    y += 14
-    rows_svg.append(chip_row("in progress", "rose", CONFIG["learning"], dashed=True))
-    H = int(y + 12)
 
-    built = "; ".join(f'{g["label"]}: {", ".join(g["items"])}' for g in CONFIG["stack"])
-    return f'''<svg xmlns="http://www.w3.org/2000/svg" width="{W}" height="{H}" viewBox="0 0 {W} {H}" role="img" aria-labelledby="t d">
-<title id="t">Tech stack</title>
-<desc id="d">Built with: {x(built)}. Currently learning: {x(", ".join(CONFIG["learning"]))}.</desc>
-<style>.pulse{{animation:pulse 1.8s ease-in-out infinite}}@keyframes pulse{{0%,100%{{opacity:1}}50%{{opacity:.25}}}}{REDUCED_MOTION}</style>
-<rect x="1" y="1" width="{W-2}" height="{H-2}" rx="16" fill="{t["bg"]}" stroke="{t["border"]}" stroke-width="1.5"/>
-<g font-family="{SANS}">{"".join(rows_svg)}</g>
-</svg>
-'''
+def stack_panel(group: dict, theme: str) -> str:
+    labels = [item[0] for item in group["items"]]
+    body = icon_tiles(group["items"], group["accent"], theme) + label_lines(labels, theme)
+    return panel_frame(theme, group["label"], group["accent"], body, f'{group["label"]}: {", ".join(labels)}.')
+
+
+def learning_panel(theme: str) -> str:
+    items = CONFIG["learning"]
+    a = accent("rose", theme)
+    labels = [item[0] for item in items]
+    body = (icon_tiles(items, "rose", theme, dashed=True) + label_lines(labels, theme) +
+            f'<circle class="pulse" cx="{PANEL_W-PAD-74}" cy="46" r="4" fill="{a}"/>'
+            f'<text x="{PANEL_W-PAD}" y="50.5" text-anchor="end" font-size="12" font-weight="700" fill="{a}">in progress</text>')
+    style = ".pulse{animation:pulse 1.8s ease-in-out infinite}@keyframes pulse{50%{opacity:.25}}"
+    return panel_frame(theme, "Learning right now", "rose", body,
+                       f'Currently learning: {", ".join(labels)}.', style)
+
+
+def language_panel(mix: list[tuple[str, float]], theme: str) -> str:
+    t = THEMES[theme]
+    colors = ["terracotta", "teal", "mustard", "plum", "sky", "sage"]
+    bar_w, bx, by = PANEL_W - 2 * PAD, PAD, 76
+    segs, legend, cx = [], [], bx
+    for i, (lang, pct) in enumerate(mix):
+        w = bar_w * pct / 100
+        col = accent(colors[i % len(colors)], theme) if lang != "Other" else t["muted"]
+        segs.append(f'<rect class="grow" style="animation-delay:{i*0.12:.2f}s" x="{cx:.2f}" y="{by}" width="{max(w, 0.5):.2f}" height="12" fill="{col}"/>')
+        cx += w
+        col_x = PAD + (i % 3) * 120
+        row_y = 116 + (i // 3) * 36
+        legend.append(f'<circle cx="{col_x+5}" cy="{row_y-4}" r="4.5" fill="{col}"/>'
+                      f'<text x="{col_x+15}" y="{row_y}" font-size="12.5" fill="{t["ink"]}">{x(lang)}</text>'
+                      f'<text x="{col_x+15}" y="{row_y+16}" font-size="12" font-weight="700" fill="{t["muted"]}">{pct:.1f}%</text>')
+    body = (f'<text x="{PANEL_W-PAD}" y="50.5" text-anchor="end" font-size="11.5" fill="{t["muted"]}">public repos · notebooks excluded</text>'
+            f'<clipPath id="bar"><rect x="{bx}" y="{by}" width="{bar_w}" height="12" rx="6"/></clipPath>'
+            f'<g clip-path="url(#bar)">{"".join(segs)}</g>{"".join(legend)}')
+    style = (".grow{transform-box:fill-box;transform-origin:left;animation:grow .9s ease-out both}"
+             "@keyframes grow{from{transform:scaleX(0)}to{transform:scaleX(1)}}")
+    desc = "Language mix by bytes of code in public repos: " + ", ".join(f"{l} {p:.1f}%" for l, p in mix) + "."
+    return panel_frame(theme, "Language mix", "mustard", body, desc, style)
 
 
 # --------------------------------------------------------------------------
 # README sections
 # --------------------------------------------------------------------------
-def slug(s: str) -> str:
-    return re.sub(r"[^a-z0-9]+", "-", s.lower()).strip("-")
-
-
-def picture(name: str, alt: str, width: int | None = None) -> str:
-    w = f' width="{width}"' if width else ""
+def picture(name: str, alt: str, extra: str = "") -> str:
     return (f'<picture><source media="(prefers-color-scheme: dark)" srcset="assets/{name}-dark.svg">'
-            f'<img src="assets/{name}-light.svg" alt="{x(alt)}"{w}></picture>')
+            f'<img src="assets/{name}-light.svg" alt="{x(alt)}"{extra}></picture>')
 
 
-def month(iso: str) -> str:
-    return datetime.fromisoformat(iso.replace("Z", "+00:00")).strftime("%b %Y")
+def project_cell(p: dict) -> str:
+    title = f'<b>{x(p["title"])}{" ↗" if p.get("url") else ""}</b>'
+    if p.get("url"):
+        title = f'<a href="{p["url"]}">{title}</a>'
+    extra = ""
+    if p.get("repo_url") and p.get("homepage"):
+        extra = f' · <a href="{p["homepage"]}">live demo</a>'
+    status = picture(f'status-{slug(p["status"])}', p["status"], ' height="20"')
+    tags = " ".join(f"<code>{x(s)}</code>" for s in p["stack"])
+    return (f'<td width="50%" valign="top">\n{title} &nbsp;{status}{extra}\n'
+            f'<p>{x(p["pitch"])}</p>\n<p><b>{x(p["highlight"])}</b> · {x(p["detail"])}</p>\n<p>{tags}</p>\n</td>')
 
 
 def projects_section(featured: list[dict]) -> str:
-    cards, links = [], []
-    for p in featured:
-        alt = f'{p["title"]} ({p["status"]}): {p["pitch"]} Stack: {", ".join(p["stack"])}.'
-        img = picture(f'card-{slug(p["title"])}', alt)
-        if p.get("url"):
-            cards.append(f'<a href="{p["url"]}">{img}</a>')
-        else:
-            cards.append(img)
-        bits = []
-        if p.get("repo_url"):
-            bits.append(f'<a href="{p["repo_url"]}">code</a>')
-        if p.get("homepage"):
-            bits.append(f'<a href="{p["homepage"]}">live demo</a>')
-        if bits:
-            links.append(f'<b>{x(p["title"])}</b> {" · ".join(bits)}')
     rows = []
-    for i in range(0, len(cards), 2):
-        rows.append(f'<p align="center">\n  {cards[i]}\n  ' + ("\n  ".join(cards[i + 1:i + 2])) + "\n</p>")
-    return "\n".join(rows) + f'\n<p align="center"><sub>{" &nbsp;|&nbsp; ".join(links)}</sub></p>'
+    for i in range(0, len(featured), 2):
+        cells = "\n".join(project_cell(p) for p in featured[i:i + 2])
+        rows.append(f"<tr>\n{cells}\n</tr>")
+    return "<table>\n" + "\n".join(rows) + "\n</table>"
 
 
 def more_section(more: list[dict], repos: dict) -> str:
@@ -486,9 +529,10 @@ def replace_section(readme: str, name: str, body: str) -> str:
 
 # --------------------------------------------------------------------------
 def main() -> None:
-    print("Fetching repos and events…")
+    print("Fetching repos, languages and events…")
     repos = fetch_repos()
     events = gh(f"/users/{USER}/events/public?per_page=50")
+    mix = language_mix(repos)
 
     featured = []
     for p in CONFIG["featured"]:
@@ -499,15 +543,17 @@ def main() -> None:
             p.setdefault("url", r["html_url"])
             if r.get("homepage"):
                 p["homepage"] = r["homepage"]
-            p["updated"] = "updated " + month(r["pushed_at"])
         featured.append(p)
 
     print("Rendering SVGs…")
     for theme in THEMES:
         write(ASSETS / f"header-{theme}.svg", header_svg(theme))
-        write(ASSETS / f"stack-{theme}.svg", stack_svg(theme))
-        for p in featured:
-            write(ASSETS / f"card-{slug(p['title'])}-{theme}.svg", card_svg(p, theme))
+        for status in {p["status"] for p in featured}:
+            write(ASSETS / f"status-{slug(status)}-{theme}.svg", status_svg(status, theme))
+        for group in CONFIG["stack"]:
+            write(ASSETS / f"panel-{slug(group['label'])}-{theme}.svg", stack_panel(group, theme))
+        write(ASSETS / f"panel-learning-{theme}.svg", learning_panel(theme))
+        write(ASSETS / f"panel-languages-{theme}.svg", language_panel(mix, theme))
 
     print("Updating README…")
     readme = README.read_text()
