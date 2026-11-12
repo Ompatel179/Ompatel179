@@ -15,7 +15,7 @@
       "accent": "terracotta"
     },
     {
-      "repo": "Harnessing_Generative_Adversarial_Models_to_Enhance_Satellite_magery_Quality",
+      "repo": "Harnessing_Generative_Adversarial_Models_to_Enhance_Satellite_Imagery_Quality",
       "title": "Satellite SRGAN",
       "pitch": "A GAN that sharpens satellite images 4×. The research behind it was published at IEEE ICETA 2025.",
       "stats": "paper: 34.55 dB PSNR · 0.08 LPIPS",

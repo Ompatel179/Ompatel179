@@ -18,13 +18,13 @@ I learn by building things and then measuring them: load-testing my own APIs, be
 <!-- PROJECTS:START -->
 <p align="center">
   <a href="https://github.com/Ompatel179/Eventpass"><picture><source media="(prefers-color-scheme: dark)" srcset="assets/card-eventpass-dark.svg"><img src="assets/card-eventpass-light.svg" alt="EventPass (shipped): QR-code check-in for student clubs. Every ticket scans exactly once, even when several organizers scan at the same moment. Stack: FastAPI, PostgreSQL, Redis, Docker, Actions."></picture></a>
-  <picture><source media="(prefers-color-scheme: dark)" srcset="assets/card-satellite-srgan-dark.svg"><img src="assets/card-satellite-srgan-light.svg" alt="Satellite SRGAN (published): A GAN that sharpens satellite images 4×. The research behind it was published at IEEE ICETA 2025. Stack: PyTorch, GANs, VGG19, OpenCV."></picture>
+  <a href="https://github.com/Ompatel179/Harnessing_Generative_Adversarial_Models_to_Enhance_Satellite_Imagery_Quality"><picture><source media="(prefers-color-scheme: dark)" srcset="assets/card-satellite-srgan-dark.svg"><img src="assets/card-satellite-srgan-light.svg" alt="Satellite SRGAN (published): A GAN that sharpens satellite images 4×. The research behind it was published at IEEE ICETA 2025. Stack: PyTorch, GANs, VGG19, OpenCV."></picture></a>
 </p>
 <p align="center">
   <a href="https://snapinterview.app"><picture><source media="(prefers-color-scheme: dark)" srcset="assets/card-snapinterview-dark.svg"><img src="assets/card-snapinterview-light.svg" alt="SnapInterview (live): Voice mock interviews where an LLM interviewer asks adaptive follow-ups across 28 interview domains. Stack: Next.js, TypeScript, PostgreSQL, Llama 3.3, AWS S3."></picture></a>
   <picture><source media="(prefers-color-scheme: dark)" srcset="assets/card-rag-project-dark.svg"><img src="assets/card-rag-project-light.svg" alt="RAG project (in progress): A retrieval-augmented generation system: LLM answers grounded in real documents, with retrieval quality I can measure. Stack: Python, LLMs, Embeddings, Vector search."></picture>
 </p>
-<p align="center"><sub><b>EventPass</b> <a href="https://github.com/Ompatel179/Eventpass">code</a> &nbsp;|&nbsp; <b>SnapInterview</b> <a href="https://snapinterview.app">live demo</a></sub></p>
+<p align="center"><sub><b>EventPass</b> <a href="https://github.com/Ompatel179/Eventpass">code</a> &nbsp;|&nbsp; <b>Satellite SRGAN</b> <a href="https://github.com/Ompatel179/Harnessing_Generative_Adversarial_Models_to_Enhance_Satellite_Imagery_Quality">code</a> &nbsp;|&nbsp; <b>SnapInterview</b> <a href="https://snapinterview.app">live demo</a></sub></p>
 <!-- PROJECTS:END -->
 
 ### Tech stack

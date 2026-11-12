@@ -80,6 +80,23 @@ def fetch_repos() -> dict[str, dict]:
     return {r["name"]: r for r in repos if not r.get("private")}
 
 
+def find_repo(repos: dict[str, dict], name: str) -> dict | None:
+    """Look a configured repo up by name, following GitHub's redirect if it was renamed."""
+    if not name:
+        return None
+    if name in repos:
+        return repos[name]
+    try:
+        r = gh(f"/repos/{USER}/{name}")  # 301 for renamed repos; urllib follows it
+    except urllib.error.HTTPError:
+        print(f"  warning: repo '{name}' not found; update scripts/profile.json")
+        return None
+    if r.get("private"):
+        return None
+    print(f"  note: '{name}' is now '{r['name']}'; update scripts/profile.json")
+    return r
+
+
 # --------------------------------------------------------------------------
 # Text measurement: rough per-glyph widths (in em) for a Helvetica-like sans.
 # Deliberately a little generous so text never clips.
@@ -401,7 +418,7 @@ def projects_section(featured: list[dict]) -> str:
 def more_section(more: list[dict], repos: dict) -> str:
     out = []
     for m in more:
-        r = repos.get(m["repo"], {})
+        r = find_repo(repos, m["repo"]) or {}
         url = r.get("html_url", f"https://github.com/{USER}/{m['repo']}")
         pitch = r.get("description") or m["pitch"]
         line = f'- **[{m["title"]}]({url})**: {pitch}  \n  <sub>{m["stack"]}'
@@ -476,7 +493,7 @@ def main() -> None:
     featured = []
     for p in CONFIG["featured"]:
         p = dict(p)
-        r = repos.get(p.get("repo", ""))
+        r = find_repo(repos, p.get("repo", ""))
         if r:
             p["repo_url"] = r["html_url"]
             p.setdefault("url", r["html_url"])
