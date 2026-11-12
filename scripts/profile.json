@@ -1,0 +1,75 @@
+{
+  "username": "Ompatel179",
+  "name": "Om Patel",
+  "role": "ML engineer · backend · full stack",
+  "header_note": "MS CS @ Rutgers, May 2027",
+
+  "featured": [
+    {
+      "repo": "Eventpass",
+      "title": "EventPass",
+      "pitch": "QR-code check-in for student clubs. Every ticket scans exactly once, even when several organizers scan at the same moment.",
+      "stats": "~950 req/s · 0 duplicate check-ins · 97% coverage",
+      "stack": ["FastAPI", "PostgreSQL", "Redis", "Docker", "Actions"],
+      "status": "shipped",
+      "accent": "terracotta"
+    },
+    {
+      "repo": "Harnessing_Generative_Adversarial_Models_to_Enhance_Satellite_magery_Quality",
+      "title": "Satellite SRGAN",
+      "pitch": "A GAN that sharpens satellite images 4×. The research behind it was published at IEEE ICETA 2025.",
+      "stats": "paper: 34.55 dB PSNR · 0.08 LPIPS",
+      "stack": ["PyTorch", "GANs", "VGG19", "OpenCV"],
+      "status": "published",
+      "accent": "teal"
+    },
+    {
+      "title": "SnapInterview",
+      "url": "https://snapinterview.app",
+      "homepage": "https://snapinterview.app",
+      "pitch": "Voice mock interviews where an LLM interviewer asks adaptive follow-ups across 28 interview domains.",
+      "stats": "speech → streaming LLM → text-to-speech",
+      "stack": ["Next.js", "TypeScript", "PostgreSQL", "Llama 3.3", "AWS S3"],
+      "status": "live",
+      "accent": "plum"
+    },
+    {
+      "title": "RAG project",
+      "pitch": "A retrieval-augmented generation system: LLM answers grounded in real documents, with retrieval quality I can measure.",
+      "stats": "coming soon · building in public",
+      "stack": ["Python", "LLMs", "Embeddings", "Vector search"],
+      "status": "in progress",
+      "accent": "mustard"
+    }
+  ],
+
+  "more": [
+    {
+      "repo": "Jobnova",
+      "title": "Jobnova agents",
+      "pitch": "Take-home for an AI engineer role: a Playwright agent that finds companies' career pages and open roles, plus a Chrome extension that fills Lever applications from a profile.",
+      "stack": "Python · Flask · Playwright · Chrome extension (MV3)"
+    },
+    {
+      "repo": "Plant_disease_prediction",
+      "title": "Plant disease prediction",
+      "pitch": "CNN that identifies plant diseases from leaf photos, with a Streamlit app for predictions.",
+      "stack": "TensorFlow · Keras · OpenCV · Streamlit"
+    }
+  ],
+
+  "stack": [
+    {"label": "ML / AI", "accent": "teal",
+     "items": ["PyTorch", "TensorFlow", "Keras", "OpenCV", "LLM APIs"]},
+    {"label": "Backend", "accent": "terracotta",
+     "items": ["Python", "FastAPI", "Flask", "PostgreSQL", "Redis", "SQLAlchemy"]},
+    {"label": "Full stack", "accent": "plum",
+     "items": ["TypeScript", "Next.js", "Prisma", "JavaScript", "HTML/CSS"]},
+    {"label": "Ship it", "accent": "sky",
+     "items": ["Docker", "GitHub Actions", "Vercel", "AWS S3", "Locust"]}
+  ],
+
+  "learning": ["Kubernetes", "RAG & vector search", "React, deeper", "AWS beyond S3"],
+
+  "exclude_from_activity": ["Ompatel179/Ompatel179"]
+}
