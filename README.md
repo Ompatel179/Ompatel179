@@ -13,13 +13,11 @@ Before grad school I did research on deep learning for satellite imagery, which 
 
 **Open to roles starting May 2027:** full-time, part-time or internship, in ML, backend or full stack.
 
-[Selected work](#selected-work) · [Tech stack](#tech-stack) · [Recent activity](#recent-activity) · [Get in touch](#get-in-touch)
+**[Portfolio ↗](https://ompatel179.github.io)** · [Selected work](#selected-work) · [Tech stack](#tech-stack) · [Recent activity](#recent-activity) · [Get in touch](#get-in-touch)
 
 ### Now building
 
 - **A RAG project:** LLM answers grounded in real documents, with retrieval quality I can actually measure.
-- **My portfolio site**, coming right after this page.
-
 ## Selected work
 
 <!-- PROJECTS:START -->
@@ -103,7 +101,6 @@ I'm happy to talk about ML systems, backend performance, or a role you think I'd
 - LinkedIn: [linkedin.com/in/op179](https://www.linkedin.com/in/op179/)
 - Email: [omnpatel179@gmail.com](mailto:omnpatel179@gmail.com)
 - Resumes: [ML / AI](resume/Om_Patel_Resume_ML_AI.pdf) · [Software engineering](resume/Om_Patel_Resume_SWE.pdf) · [Forward-deployed engineering](resume/Om_Patel_Resume_FDE.pdf)
-<!-- PORTFOLIO: replace the line below with "- Portfolio: [your-site](https://your-site)" once it's live -->
-- Portfolio: coming soon
+- Portfolio: [ompatel179.github.io](https://ompatel179.github.io)
 
 <sub>Refreshed daily by a GitHub Action. Icons from [Simple Icons](https://simpleicons.org) (CC0).</sub>
